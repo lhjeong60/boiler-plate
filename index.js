@@ -4,6 +4,8 @@ const port = 5000;
 const mongoose = require('mongoose');
 const { User } = require('./models/User');
 const config = require('./config/key');
+const bcrypt = require('bcrypt');
+const saltRounds = 10;
 // application/x-www-form-urlencoded
 app.use(express.urlencoded({extended: true}));
 // application/json

@@ -1,6 +1,7 @@
 const mongoose = require('mongoose');
 const bcrypt = require('bcrypt');
 const saltRounds = 10;
+const jwt = require('jsonwebtoken');
 
 const userSchema = mongoose.Schema({
     name: {
@@ -50,11 +51,14 @@ userSchema.pre('save', function(next) {
                 next()
             })
         })
+    } else {
+        next()
     }
 })
 // // save 메소드 실행전에 실행됨
 // userSchema.pre('save', (next) => {
-//     let user = this;
+//     const user = this;
+//     console.log(user);
 
 //     if(user.isModified('password')) { //password 입력이 변경되었을 때만
 //         // 비밀번호 암호화
@@ -71,6 +75,29 @@ userSchema.pre('save', function(next) {
 //         })
 //     }
 // })
+
+// 비밀번호 일치 확인 메소드 추가
+userSchema.methods.comparePassword = function (plainPassword, cb) {
+    bcrypt.compare(plainPassword, this.password, (err, isMatch) => {
+        if(err) return cb(err)
+        cb(null, isMatch)
+    })
+}
+
+// 토큰생성하기
+userSchema.methods.generateToken = function (cb) {
+    //jsonwebtoken을 이용해서 token 생성
+    const user = this;
+
+    const token = jwt.sign({_id: user._id}, 'secretToken')
+
+    user.token = token
+    user.save((err, user) => {
+        if(err) return cb(err)
+        cb(null, user)
+    })
+
+}
 
 const User = mongoose.model('User', userSchema);
 module.exports = { User };
